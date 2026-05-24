@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-brand: #F59E0B;
+    --color-brand-hover: #f97316;
+    --color-bg-card: #313637;
+    --color-border: #484D4E;
+  }
+}
+
+/* 1. Анимация появления при подгрузке страницы */
+@keyframes pageLoadFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Класс для плавного появления главного контейнера */
+.animate-on-load {
+  animation: pageLoadFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 2. Глобальные стили для карточек тарифов */
+.gym-card {
+  background-color: var(--color-bg-card);
+  border: 2px solid var(--color-border);
+  border-radius: 1rem; /* rounded-2xl */
+  transition: all 0.25s ease-in-out;
+}
+
+.gym-card:hover {
+  border-color: var(--color-brand);
+  box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Активное состояние/выбранная карточка */
+.gym-card-active {
+  border-color: var(--color-brand);
+  box-shadow: 0 10px 30px -5px rgba(245, 158, 11, 0.25);
+}
+
+/* 3. Глобальные стили для кнопок */
+.gym-btn-primary {
+  width: 100%;
+  background-color: var(--color-brand);
+  color: #000000;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.875rem 0; /* py-3.5 */
+  border-radius: 0.75rem; /* rounded-xl */
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.1);
+}
+
+.gym-btn-primary:hover {
+  background-color: var(--color-brand-hover);
+  box-shadow: 0 10px 20px -3px rgba(249, 115, 22, 0.3);
+}
+
+.gym-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.gym-btn-primary:disabled {
+  background-color: #4b5563;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* 4. Глобальные стили для выпадающих списков (Dropdown / Select) */
+.gym-select {
+  width: 100%;
+  background-color: #1C1F1F;
+  color: #ffffff;
+  border: 2px solid var(--color-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  appearance: none; /* Убираем дефолтную стрелку браузера */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://w3.org' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23F59E0B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.gym-select:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+/* Стилизация опций внутри выпадающего списка */
+.gym-select option {
+  background-color: #1C1F1F;
+  color: #ffffff;
+  padding: 0.5rem;
+}
