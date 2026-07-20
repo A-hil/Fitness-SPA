@@ -1,12 +1,21 @@
 "use client";
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { Loader } from 'lucide-react';
+import promotions from './promotions.json';
 
 export default function GymOfferPage() {
-      const [time, setTime] = useState(16 * 60);
-      const [isTime, setIsTime] = useState(true);
+      const TOTAL_TIME = 16 * 60; // 16 минут
+      const HALF_TIME = TOTAL_TIME / 2; // 8 минут
+      const DANGER_TIME = 60; // 1 минута
 
-useEffect(() => {
+      const [isLoading, setIsLoading] = useState(true);
+      const [time, setTime] = useState(TOTAL_TIME);
+      const [isTime, setIsTime] = useState(true);
+const { tariffs, guarantee } = promotions;
+const mainTariff = tariffs[0];
+const otherTariffs = tariffs.slice(1);
+ useEffect(() => {
   // Если таймер изначально на паузе или время уже вышло, ничего не создаем
   if (!isTime || time <= 0) return;
 
@@ -25,7 +34,14 @@ useEffect(() => {
   // Очистка при паузе или уходе со страницы
   return () => clearInterval(intervalId);
 }, [isTime]); 
-
+ 
+ useEffect(() => {
+    const loadingTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500); // Имитация загрузки 1.5 секунды
+    return () => clearTimeout(loadingTimer);
+  }, []);
+ 
   // Форматируем секунды в привычный вид MM:SS
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -38,13 +54,37 @@ useEffect(() => {
     return `${paddedMinutes}:${paddedSeconds}`;
   };
 
+  const getTimerBannerClass = () => {
+    if (time <= 0) return 'bg-[#141717]/50';
+    if (time <= DANGER_TIME) return 'bg-red-600 text-white animate-pulse';
+    if (time <= HALF_TIME) return 'bg-orange-500 text-black';
+    return 'bg-[#A6E22E] text-black';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#141717] flex justify-center items-center">
+        <Loader className="w-12 h-12 animate-spin text-[#F59E0B]" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#141717] text-white flex flex-col items-center">
       
       {/* 1. Верхний таймер */}
-      <div className="w-full bg-[#112E21] text-[#A6E22E] text-center py-2.5 text-sm font-semibold sticky top-0 z-50 border-b border-[#1b4432]">
-        Успейте открыть пробную неделю <br></br>
-        <span className="font-mono text-[#F59E0B] text-2xl">{formatTime(time)}</span>  
+      <div className={`w-full text-center py-2.5 
+      text-sm font-semibold sticky top-0 z-50
+       transition-all duration-500 ${getTimerBannerClass()}`}>
+        {time > 0 ? (<>
+          Успейте открыть пробную неделю <br />
+          <span className="font-mono text-2xl">{formatTime(time)}</span>
+        </>) : (
+          <div className="text-zinc-400">
+             Акция закончилась <br />
+             <span className="font-mono text-lg text-white">00:00</span>
+          </div>
+        )}
       </div>
         
       {/* Главный контейнер */}
@@ -75,77 +115,52 @@ useEffect(() => {
           <div className="md:col-span-7 space-y-4 w-full flex flex-col justify-between h-full">
             
             {/* 1. Главная карточка "Навсегда" */}
-            <div className="bg-[#313637] border-2 border-[#F59E0B] rounded-2xl p-5 relative flex justify-between items-center shadow-lg">
-              <span className="absolute -top-3 left-4 bg-[#EF4444] text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
-                -70%
-              </span>
-              <span className="absolute -top-3 right-4 bg-[#3B82F6] text-[10px] font-bold uppercase px-2 py-0.5 rounded-md tracking-wider">
-                хит!
-              </span>
+            <div className="bg-[#313637] border-2 border-[#F59E0B] rounded-2xl p-5 relative flex justify-between items-center shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-orange-500/20 cursor-pointer">
+              <span className="absolute -top-3 left-4 bg-[#EF4444] text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">{mainTariff.discount}</span>
+              {mainTariff.tags && mainTariff.tags.length > 0 && (
+                <span className="absolute -top-3 right-4 bg-[#3B82F6] text-[10px] font-bold uppercase px-2 py-0.5 rounded-md tracking-wider">
+                  {mainTariff.tags[0]}
+                </span>
+              )}
               
               <div>
-                <h3 className="text-lg font-bold text-zinc-300">Навсегда</h3>
-                <p className="text-xs text-zinc-400 max-w-[200px] mt-1 leading-tight">
-                  Для тех, кто хочет всегда быть в форме и поддерживать здоровье
-                </p>
+                <h3 className="text-lg font-bold text-zinc-300">{mainTariff.name}</h3>
+                <p className="text-xs text-zinc-400 max-w-[200px] mt-1 leading-tight">{mainTariff.description}</p>
               </div>
 
               <div className="text-right">
-                <div className="text-3xl font-black text-[#F59E0B]">5990 ₽</div>
-                <div className="text-sm text-zinc-500 line-through">19 990 ₽</div>
+                <div className="text-3xl font-black text-[#F59E0B]">{mainTariff.price} {mainTariff.currency}</div>
+                <div className="text-sm text-zinc-500 line-through">{mainTariff.old_price.toLocaleString('ru-RU')} {mainTariff.currency}</div>
               </div>
             </div>
 
             {/* 2. Сетка из 3-х мелких карточек */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              
-              {/* 3 месяца */}
-              <div className="bg-[#313637] border-2 border-[#484D4E] border-solid rounded-4xl p-4 text-center relative flex flex-col justify-between min-h-[140px]">
-                <span className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-[#EF4444] text-[9px] font-bold px-1.5 py-0.5 rounded-md">-50%</span>
-                <div className="text-sm font-medium text-zinc-400 mt-1">3 месяца</div>
-                <div className="my-2">
-                  <div className="text-xl font-bold text-white">1990 ₽</div>
-                  <div className="text-xs text-zinc-500 line-through">3990 ₽</div>
+              {otherTariffs.map((tariff) => (
+                <div key={tariff.id} className="bg-[#313637] border-2 border-[#484D4E] border-solid rounded-2xl p-4 text-center relative flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:border-[#F59E0B] hover:scale-[1.05] cursor-pointer">
+                  <span className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-[#EF4444] text-[9px] font-bold px-1.5 py-0.5 rounded-md">{tariff.discount}</span>
+                  <div className="text-sm font-medium text-zinc-400 mt-1">{tariff.name}</div>
+                  <div className="my-2">
+                    <div className="text-xl font-bold text-white">{tariff.price} {tariff.currency}</div>
+                    <div className="text-xs text-zinc-500 line-through">{tariff.old_price} {tariff.currency}</div>
+                  </div>
+                  <div className="text-[10px] text-zinc-400 leading-tight">{tariff.description}</div>
                 </div>
-                <div className="text-[10px] text-zinc-400 leading-tight">Привести тело в порядок</div>
-              </div>
-
-              {/* 1 месяц */}
-              <div className="bg-[#313637] border-2 border-[#484D4E] border-solid rounded-4xl p-4 text-center relative flex flex-col justify-between min-h-[140px]">
-                <span className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-[#EF4444] text-[9px] font-bold px-1.5 py-0.5 rounded-md">-40%</span>
-                <div className="text-sm font-medium text-zinc-400 mt-1">1 месяц</div>
-                <div className="my-2">
-                  <div className="text-xl font-bold text-white">990 ₽</div>
-                  <div className="text-xs text-zinc-500 line-through">1690 ₽</div>
-                </div>
-                <div className="text-[10px] text-zinc-400 leading-tight">Чтобы получить первые результаты</div>
-              </div>
-
-              {/* 1 неделя */}
-              <div className="bg-[#313637] border-2 border-[#484D4E] border-solid rounded-4xl p-4 text-center relative flex flex-col justify-between min-h-[140px]">
-                <span className="absolute -top-2.5 left-1/2 transform -translate-x-1/2 bg-[#EF4444] text-[9px] font-bold px-1.5 py-0.5 rounded-md">-30%</span>
-                <div className="text-sm font-medium text-zinc-400 mt-1">1 неделя</div>
-                <div className="my-2">
-                  <div className="text-xl font-bold text-white">690 ₽</div>
-                  <div className="text-xs text-zinc-500 line-through">990 ₽</div>
-                </div>
-                <div className="text-[10px] text-zinc-400 leading-tight">Чтобы просто начать</div>
-              </div>
-
+              ))}
             </div>
 
             {/* Текст под сеткой */}
-<div className="bg-[#313637] border border-zinc-800 rounded-2xl p-4 flex flex-row items-center gap-3 w-full max-w-xs">
-  {/* Иконка восклицательного знака */}
-  <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-    <span className="text-[#F59E0B] font-black text-sm">!</span>
-  </div>
+            <div className="bg-[#313637] border border-zinc-800 rounded-2xl p-4 flex flex-row items-center gap-3 w-full max-w-xs">
+              {/* Иконка восклицательного знака */}
+              <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                <span className="text-[#F59E0B] font-black text-sm">!</span>
+              </div>
 
-  {/* Текст подсказки */}
-  <p className="text-[8px] text-zinc-300 text-left leading-snug">
-    Следуя плану на 3 месяца и более, люди получают в 2 раза лучший результат, чем за 1 месяц
-  </p>
-</div>
+              {/* Текст подсказки */}
+              <p className="text-[8px] text-zinc-300 text-left leading-snug">
+                Следуя плану на 3 месяца и более, люди получают в 2 раза лучший результат, чем за 1 месяц
+              </p>
+            </div>
             
 
             {/* Чекбокс оферты */}
@@ -172,10 +187,10 @@ useEffect(() => {
         {/* НИЖНИЙ БЛОК: Гарантия возврата (вынесен за пределы сетки вниз) */}
         <div className="w-full max-w-5xl mt-6 bg-[#1C1F1F]/40 border border-zinc-800 rounded-2xl p-5">
           <div className="inline-block border border-[#A6E22E] text-[#A6E22E] text-xs font-bold px-3 py-1 rounded-full uppercase mb-3">
-            гарантия возврата 30 дней
+            {guarantee.title}
           </div>
           <p className="text-xs text-zinc-400 leading-relaxed">
-            Мы уверены, что наш план сработает для тебя и ты увидишь видимые результаты уже через 4 недели! Мы даже готовы полностью вернуть твои деньги в течение 30 дней с момента покупки, если ты не получишь видимых результатов.
+            {guarantee.description}
           </p>
         </div>
 
